@@ -28,8 +28,17 @@ DECLARE
     V_DISTINCT_KEYS NUMBER;
     V_DISTINCT_SOURCE_ROWS NUMBER;
     V_PUBLISHED NUMBER;
+    V_FILTERED NUMBER;
     V_RELEASE_TS TIMESTAMP_TZ;
     V_LATEST_RELEASE_TS TIMESTAMP_TZ;
+    V_SOURCE_COUNT_PASSED BOOLEAN;
+    V_SOURCE_UNIQUENESS_PASSED BOOLEAN;
+    V_BUSINESS_KEY_PASSED BOOLEAN;
+    V_ACTUAL_TEXT VARCHAR;
+    V_EXPECTED_TEXT VARCHAR;
+    V_DISTINCT_SOURCE_ROWS_TEXT VARCHAR;
+    V_DUPLICATE_COUNT_TEXT VARCHAR;
+    V_RUN_STATUS VARCHAR;
     V_PUBLISHED_BATCHES NUMBER DEFAULT 0;
     V_QUARANTINED_BATCHES NUMBER DEFAULT 0;
     V_BATCHES RESULTSET;
@@ -266,9 +275,15 @@ BEGIN
         FROM RAW.SOURCE_ROW
         WHERE BATCH_ID = :V_BATCH_ID;
 
-        -- Keep the procedural bind expressions in separate statements. This
-        -- avoids an internal Snowflake execution error observed for multi-row
-        -- VALUES inside a Snowflake Scripting procedure.
+        -- Bind only typed scalar variables in VALUES. Computing comparisons
+        -- and conversions directly in the bind list caused an internal
+        -- Snowflake execution error in this Snowflake Scripting procedure.
+        V_SOURCE_COUNT_PASSED := (V_ACTUAL = V_EXPECTED);
+        V_SOURCE_UNIQUENESS_PASSED := (V_DISTINCT_SOURCE_ROWS = V_ACTUAL);
+        V_ACTUAL_TEXT := TO_VARCHAR(V_ACTUAL);
+        V_EXPECTED_TEXT := TO_VARCHAR(V_EXPECTED);
+        V_DISTINCT_SOURCE_ROWS_TEXT := TO_VARCHAR(V_DISTINCT_SOURCE_ROWS);
+
         INSERT INTO OPS.QUALITY_RESULT (
             RUN_ID,
             BATCH_ID,
@@ -283,9 +298,9 @@ BEGIN
             :V_BATCH_ID,
             'SOURCE_RECORD_COUNT',
             'ERROR',
-            :V_ACTUAL = :V_EXPECTED,
-            TO_VARCHAR(:V_ACTUAL),
-            TO_VARCHAR(:V_EXPECTED),
+            :V_SOURCE_COUNT_PASSED,
+            :V_ACTUAL_TEXT,
+            :V_EXPECTED_TEXT,
             CURRENT_TIMESTAMP()
         );
 
@@ -303,9 +318,9 @@ BEGIN
             :V_BATCH_ID,
             'SOURCE_FILE_UNIQUENESS',
             'ERROR',
-            :V_DISTINCT_SOURCE_ROWS = :V_ACTUAL,
-            TO_VARCHAR(:V_DISTINCT_SOURCE_ROWS),
-            TO_VARCHAR(:V_ACTUAL),
+            :V_SOURCE_UNIQUENESS_PASSED,
+            :V_DISTINCT_SOURCE_ROWS_TEXT,
+            :V_ACTUAL_TEXT,
             CURRENT_TIMESTAMP()
         );
 
@@ -342,11 +357,27 @@ BEGIN
               AND TRY_TO_NUMBER(C01) IS NOT NULL
               AND TRY_TO_NUMBER(C12) IS NOT NULL;
 
-            INSERT INTO OPS.QUALITY_RESULT
-            VALUES (
-                :V_RUN_ID, :V_BATCH_ID, 'POPULATION_BUSINESS_KEY_UNIQUENESS',
-                'ERROR', :V_VALID = :V_DISTINCT_KEYS,
-                TO_VARCHAR(:V_VALID - :V_DISTINCT_KEYS), '0', CURRENT_TIMESTAMP()
+            V_BUSINESS_KEY_PASSED := (V_VALID = V_DISTINCT_KEYS);
+            V_DUPLICATE_COUNT_TEXT := TO_VARCHAR(V_VALID - V_DISTINCT_KEYS);
+
+            INSERT INTO OPS.QUALITY_RESULT (
+                RUN_ID,
+                BATCH_ID,
+                CHECK_NAME,
+                SEVERITY,
+                PASSED,
+                ACTUAL_VALUE,
+                EXPECTED_VALUE,
+                CHECKED_AT
+            ) VALUES (
+                :V_RUN_ID,
+                :V_BATCH_ID,
+                'POPULATION_BUSINESS_KEY_UNIQUENESS',
+                'ERROR',
+                :V_BUSINESS_KEY_PASSED,
+                :V_DUPLICATE_COUNT_TEXT,
+                '0',
+                CURRENT_TIMESTAMP()
             );
 
             IF (V_VALID = 0 OR V_VALID != V_DISTINCT_KEYS) THEN
@@ -450,11 +481,27 @@ BEGIN
               AND TRY_TO_NUMBER(C01) IS NOT NULL
               AND TRY_TO_DECIMAL(C13, 18, 3) IS NOT NULL;
 
-            INSERT INTO OPS.QUALITY_RESULT
-            VALUES (
-                :V_RUN_ID, :V_BATCH_ID, 'LABOUR_BUSINESS_KEY_UNIQUENESS',
-                'ERROR', :V_VALID = :V_DISTINCT_KEYS,
-                TO_VARCHAR(:V_VALID - :V_DISTINCT_KEYS), '0', CURRENT_TIMESTAMP()
+            V_BUSINESS_KEY_PASSED := (V_VALID = V_DISTINCT_KEYS);
+            V_DUPLICATE_COUNT_TEXT := TO_VARCHAR(V_VALID - V_DISTINCT_KEYS);
+
+            INSERT INTO OPS.QUALITY_RESULT (
+                RUN_ID,
+                BATCH_ID,
+                CHECK_NAME,
+                SEVERITY,
+                PASSED,
+                ACTUAL_VALUE,
+                EXPECTED_VALUE,
+                CHECKED_AT
+            ) VALUES (
+                :V_RUN_ID,
+                :V_BATCH_ID,
+                'LABOUR_BUSINESS_KEY_UNIQUENESS',
+                'ERROR',
+                :V_BUSINESS_KEY_PASSED,
+                :V_DUPLICATE_COUNT_TEXT,
+                '0',
+                CURRENT_TIMESTAMP()
             );
 
             IF (V_VALID = 0 OR V_VALID != V_DISTINCT_KEYS) THEN
@@ -577,18 +624,38 @@ BEGIN
             RUN_ID = :V_RUN_ID
         WHERE BATCH_ID = :V_BATCH_ID;
 
-        INSERT INTO OPS.RECORD_OUTCOME
-        VALUES (
-            :V_RUN_ID, :V_BATCH_ID, :V_ACTUAL, :V_VALID, :V_PUBLISHED,
-            :V_ACTUAL - :V_VALID, CURRENT_TIMESTAMP()
+        V_FILTERED := V_ACTUAL - V_VALID;
+
+        INSERT INTO OPS.RECORD_OUTCOME (
+            RUN_ID,
+            BATCH_ID,
+            SOURCE_RECORDS,
+            VALID_RECORDS,
+            PUBLISHED_RECORDS,
+            FILTERED_RECORDS,
+            RECORDED_AT
+        ) VALUES (
+            :V_RUN_ID,
+            :V_BATCH_ID,
+            :V_ACTUAL,
+            :V_VALID,
+            :V_PUBLISHED,
+            :V_FILTERED,
+            CURRENT_TIMESTAMP()
         );
 
         V_PUBLISHED_BATCHES := V_PUBLISHED_BATCHES + 1;
     END FOR;
 
+    V_RUN_STATUS := IFF(
+        V_QUARANTINED_BATCHES = 0,
+        'SUCCEEDED',
+        'COMPLETED_WITH_QUARANTINE'
+    );
+
     UPDATE OPS.PIPELINE_RUN
     SET FINISHED_AT = CURRENT_TIMESTAMP(),
-        STATUS = IFF(:V_QUARANTINED_BATCHES = 0, 'SUCCEEDED', 'COMPLETED_WITH_QUARANTINE'),
+        STATUS = :V_RUN_STATUS,
         BATCHES_PUBLISHED = :V_PUBLISHED_BATCHES,
         BATCHES_QUARANTINED = :V_QUARANTINED_BATCHES
     WHERE RUN_ID = :V_RUN_ID;
