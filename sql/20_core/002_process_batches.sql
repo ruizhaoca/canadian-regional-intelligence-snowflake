@@ -174,7 +174,11 @@ BEGIN
             OR V_INGESTED_AT IS NULL
             OR V_TABLE_ID NOT IN ('14-10-0461-01', '17-10-0148-01')
             OR NOT REGEXP_LIKE(V_BATCH_ID, '^[0-9]{8}-[a-f0-9]{16}$')
-            OR V_BATCH_ID NOT LIKE (REPLACE(V_TABLE_ID, '-', '') || '-%')
+            -- StatsCan table IDs include a two-digit view suffix, while the
+            -- product ID used in batch IDs is the first eight digits.
+            OR V_BATCH_ID NOT LIKE (
+                LEFT(REPLACE(V_TABLE_ID, '-', ''), 8) || '-%'
+            )
             OR NOT REGEXP_LIKE(V_SOURCE_ARCHIVE_SHA256, '^[a-f0-9]{64}$')
             OR NOT REGEXP_LIKE(V_DATA_CSV_SHA256, '^[a-f0-9]{64}$')
             OR V_DATA_PATH != (
