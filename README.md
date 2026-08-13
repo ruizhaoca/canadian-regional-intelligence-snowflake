@@ -8,38 +8,9 @@ The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent l
 
 ## MVP workflow
 
-```mermaid
-flowchart TB
-    S[Statistics Canada WDS]
-    J[Azure Container Apps Job]
-    L[ADLS Gen2]
-    E[Azure Event Grid]
-    P[Snowpipe]
-    R[Snowflake RAW]
-    T[Snowflake Streams and Tasks]
-    Q{Quality gate}
-    C[Snowflake CORE]
-    M[Snowflake MART]
-    A[Snowsight]
-    X[Quarantine]
+[![Canadian Regional Intelligence end-to-end architecture](docs/assets/architecture.svg)](docs/assets/architecture.svg)
 
-    S --> J --> L --> E --> P --> R --> T --> Q
-    Q -->|Pass| C --> M --> A
-    Q -->|Fail| X
-```
-
-| Stage | Component | Responsibility |
-|---:|---|---|
-| 1 | Statistics Canada WDS | Resolves the two official full-table CSV downloads. |
-| 2 | Azure Container Apps Job | Runs the scheduled Python acquisition and computes content hashes. |
-| 3 | ADLS Gen2 | Stores immutable ZIP, CSV, manifest, and READY control objects. |
-| 4 | Event Grid and Snowpipe | Delivers READY events and loads batch-control metadata into Snowflake. |
-| 5 | RAW, Streams, Tasks, and SQL procedure | Loads exact source batches and runs ordered, idempotent ELT. |
-| 6 | Quality gate | Checks counts, uniqueness, sequencing, reconciliation, and quarantine rules. |
-| 7 | CORE and MART | Maintains historized facts and publishes CMA-year analytical metrics. |
-| 8 | Snowsight | Supports operational monitoring and regional analysis. |
-
-Operations and governance span every stage through RBAC, audit tables, Terraform, GitHub Actions, resource monitors, and warehouse auto-suspend.
+The workflow moves two official Statistics Canada datasets through immutable Azure landing, event-driven Snowflake ingestion, governed ELT, and a CMA-year analytical mart. A [PNG version](docs/assets/architecture.png) is available for platforms that do not render SVG.
 
 ## Authoritative data sources
 
