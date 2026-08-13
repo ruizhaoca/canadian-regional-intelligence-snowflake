@@ -1,5 +1,7 @@
 # Canadian Regional Intelligence on Snowflake
 
+[![CI](https://github.com/ruizhaoca/canadian-regional-intelligence-snowflake/actions/workflows/ci.yml/badge.svg)](https://github.com/ruizhaoca/canadian-regional-intelligence-snowflake/actions/workflows/ci.yml)
+
 A portfolio-grade data engineering platform that combines Canadian metropolitan-area population and labour-market data to answer a practical question: **how are population growth and labour-market conditions changing together across Canadian CMAs?**
 
 The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent landing, Snowflake ELT, data quality controls, dimensional modeling, infrastructure as code, CI, RBAC, and cost-aware operations.

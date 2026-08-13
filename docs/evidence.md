@@ -65,6 +65,7 @@ The reproducible acceptance queries are stored in [`sql/90_verification/001_acce
 ## Reproducibility checks
 
 - Azure Terraform refresh plan: `No changes. Your infrastructure matches the configuration.`
+- Snowflake Terraform refresh plan: `No changes. Your infrastructure matches the configuration.`
 - Azure Terraform configuration: valid
 - Snowflake Terraform configuration: valid, with one documented provider deprecation warning
 - Python: Ruff and strict mypy passed
