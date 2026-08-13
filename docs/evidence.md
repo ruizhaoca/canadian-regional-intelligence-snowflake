@@ -50,3 +50,13 @@ The 615 rows equal `41 CMAs x 15 years`, confirming a complete annual CMA panel 
 - `OPS.PIPELINE_RUN`: run status and published/quarantined batch totals
 
 The reproducible acceptance queries are stored in [`sql/90_verification/001_acceptance.sql`](../sql/90_verification/001_acceptance.sql).
+
+## Reproducibility checks
+
+- Azure Terraform refresh plan: `No changes. Your infrastructure matches the configuration.`
+- Azure Terraform configuration: valid
+- Snowflake Terraform configuration: valid, with one documented provider deprecation warning
+- Python: Ruff and strict mypy passed
+- Tests: 10 passed with 75% statement coverage
+- Snowflake SQL: SQLFluff passed for every migration and verification query
+- PowerShell: every deployment script parsed successfully
