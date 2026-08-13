@@ -8,7 +8,11 @@ from typing import BinaryIO, Protocol
 
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
-from azure.storage.filedatalake import DataLakeServiceClient, FileSystemClient
+from azure.storage.filedatalake import (
+    DataLakeFileClient,
+    DataLakeServiceClient,
+    FileSystemClient,
+)
 
 
 class ObjectIntegrityError(RuntimeError):
@@ -99,7 +103,7 @@ class AzureDataLakeLandingStore:
         service = DataLakeServiceClient(account_url=account_url, credential=credential)
         self._file_system: FileSystemClient = service.get_file_system_client(file_system)
 
-    def _client(self, path: str):  # type: ignore[no-untyped-def]
+    def _client(self, path: str) -> DataLakeFileClient:
         return self._file_system.get_file_client(path)
 
     def exists(self, path: str) -> bool:
@@ -132,16 +136,38 @@ class AzureDataLakeLandingStore:
                 content,
                 overwrite=False,
                 length=size_bytes,
-                metadata={"sha256": sha256},
             )
+            client.set_metadata({"sha256": sha256})
             return True
         except ResourceExistsError:
-            properties = client.get_file_properties()
-            existing_hash = (properties.metadata or {}).get("sha256")
-            if properties.size != size_bytes or existing_hash != sha256:
-                raise ObjectIntegrityError(
-                    f"Immutable ADLS object differs at {path}: "
-                    f"expected size/hash {size_bytes}/{sha256}, "
-                    f"found {properties.size}/{existing_hash}"
-                ) from None
+            self._verify_existing(client, path, sha256, size_bytes)
             return False
+
+    @staticmethod
+    def _verify_existing(
+        client: DataLakeFileClient,
+        path: str,
+        expected_sha256: str,
+        expected_size: int,
+    ) -> None:
+        properties = client.get_file_properties()
+        existing_hash = (properties.metadata or {}).get("sha256")
+
+        # upload_data(overwrite=False) cannot atomically set metadata in the
+        # current Azure SDK. If a prior process uploaded the immutable bytes
+        # but stopped before set_metadata(), recover by hashing the remote
+        # stream and then restoring the metadata.
+        if properties.size == expected_size and existing_hash is None:
+            digest = hashlib.sha256()
+            for chunk in client.download_file().chunks():
+                digest.update(chunk)
+            existing_hash = digest.hexdigest()
+            if existing_hash == expected_sha256:
+                client.set_metadata({"sha256": expected_sha256})
+
+        if properties.size != expected_size or existing_hash != expected_sha256:
+            raise ObjectIntegrityError(
+                f"Immutable ADLS object differs at {path}: "
+                f"expected size/hash {expected_size}/{expected_sha256}, "
+                f"found {properties.size}/{existing_hash}"
+            ) from None
