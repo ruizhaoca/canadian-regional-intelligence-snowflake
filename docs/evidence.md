@@ -42,6 +42,17 @@ Blocking checks covered source-record counts, source-row uniqueness, and dataset
 
 The 615 rows equal `41 CMAs x 15 years`, confirming a complete annual CMA panel for the shared population and labour-market period. The mart exposes population, year-over-year population growth, labour force, employment, unemployment, participation rate, employment rate, and unemployment rate.
 
+## Business-result spot check
+
+The latest-year query returned complete 2025 population and labour-market metrics for the 15 largest CMAs. Representative results were:
+
+- Toronto was the largest CMA at 7,108,874 residents, followed by Montréal at 4,597,837 and Vancouver at 3,088,036.
+- Edmonton and Calgary had the highest year-over-year population growth among the 15 largest CMAs, at 3.09% and 2.94%.
+- Windsor had the highest unemployment rate in the group at 9.7%, while Québec had the lowest at 4.2%.
+- Employment, participation, and unemployment rates were populated for every sampled CMA and were internally consistent.
+
+Accented names such as `Montréal` and `Québec` remained valid UTF-8 throughout acquisition, Snowflake transformation, and CSV export.
+
 ## Operational evidence retained in Snowflake
 
 - `OPS.VW_BATCH_HEALTH`: source, actual, valid, status, reason, and processing metadata by batch
