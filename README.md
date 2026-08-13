@@ -54,6 +54,20 @@ The acquisition service resolves official full-table CSV downloads through the [
 - Warehouses are X-Small with 60-second auto-suspend and a Snowflake resource monitor.
 - A documented teardown removes billable cloud resources while retaining code and deployment evidence.
 
+## Verified live MVP results
+
+The DEV pipeline was exercised end to end on Azure and Snowflake on August 13, 2026.
+
+| Dataset | Source rows | Conformed rows | Quality checks | Reconciled | Final status |
+|---|---:|---:|---:|---|---|
+| Labour market | 174,150 | 4,301 | 3/3 passed | Yes | `PUBLISHED` |
+| Population | 1,819,875 | 1,025 | 3/3 passed | Yes | `PUBLISHED` |
+| **Total** | **1,994,025** | **5,326** | **6/6 passed** | **Yes** | **2/2 published** |
+
+The analytical mart contains 615 rows: a complete panel of 41 CMAs across 15 annual periods from 2011 through 2025. An immediate replay of both immutable source archives returned `SKIPPED`, demonstrating content-addressed idempotency before Snowflake loading.
+
+See [docs/evidence.md](docs/evidence.md) for the acceptance evidence and interpretation of source, conformed, and mart record counts.
+
 ## MVP boundaries
 
 Included: DEV only, CMA-level analysis, Azure + Snowflake, Python, SQL, Terraform, GitHub Actions, event-driven loading, RBAC, auditability, and cost controls.
@@ -102,4 +116,4 @@ The second identical run reports `SKIPPED` for both content-addressed batches.
 
 ## Deployment
 
-The ordered, two-pass cloud deployment and teardown procedure is documented in [docs/deployment.md](docs/deployment.md). Deployment evidence is added only after the DEV run has been exercised successfully.
+The ordered, two-pass cloud deployment and teardown procedure is documented in [docs/deployment.md](docs/deployment.md). The successful DEV acceptance run is documented in [docs/evidence.md](docs/evidence.md).

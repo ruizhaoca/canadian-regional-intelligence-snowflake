@@ -59,6 +59,8 @@ Build the repository image in the provisioned Azure Container Registry. Set `con
 
 Wait until both batches reach `PUBLISHED`, then execute `sql/90_verification/001_acceptance.sql`. Preserve sanitized screenshots or query exports for the repository. Re-run the acquisition job and show that both content-addressed batches are skipped and no analytical rows duplicate.
 
+The completed August 13, 2026 DEV acceptance run and its verified counts are recorded in [evidence.md](evidence.md).
+
 ## 7. Teardown
 
 After evidence is captured, destroy the Snowflake and Azure DEV stacks. Finally delete the separate Terraform state resource group only after both destroys succeed and the state/evidence required for the portfolio has been retained. Snowflake trial objects disappear when the trial expires, but Azure resources continue to exist until explicitly removed.
