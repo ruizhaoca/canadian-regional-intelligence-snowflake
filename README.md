@@ -9,29 +9,44 @@ The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent l
 ## MVP workflow
 
 ```mermaid
-flowchart LR
-    S[Statistics Canada WDS<br/>two annual tables]
-    J[Azure Container Apps Job<br/>scheduled Python acquisition]
-    L[ADLS Gen2<br/>immutable ZIP + CSV + manifest + READY]
-    E[Event Grid]
-    P[Snowpipe<br/>READY control row]
-    R[RAW control + exact batch load]
-    T[Streams + triggered Tasks<br/>transactional SQL procedure]
-    Q{Quality and<br/>reconciliation gate}
-    C[CORE history + current views]
-    M[CMA analytical mart]
-    A[Snowsight SQL analysis]
-    X[Quarantine + failed batches]
+flowchart TB
+    subgraph AZURE[Azure acquisition and landing]
+        direction LR
+        S[Statistics Canada<br/>WDS]
+        J[Container Apps Job<br/>Python acquisition]
+        L[ADLS Gen2<br/>Immutable batches]
+        E[Event Grid]
+        S --> J --> L --> E
+    end
 
-    S --> J --> L --> E --> P --> R --> T --> Q
-    Q -->|pass| C --> M --> A
-    Q -->|fail| X
+    subgraph SNOWFLAKE[Snowflake ingestion and ELT]
+        direction LR
+        P[Snowpipe<br/>READY control]
+        R[RAW<br/>Source and metadata]
+        T[Streams and Tasks<br/>SQL procedure]
+        Q{Quality and<br/>reconciliation}
+        P --> R --> T --> Q
+    end
 
-    O[Operations and governance<br/>run/batch/record audit / RBAC / tags<br/>Key Vault / Terraform / GitHub Actions<br/>cost monitors and auto-suspend]
-    O -. governs and observes .-> J
-    O -. governs and observes .-> L
-    O -. governs and observes .-> T
-    O -. governs and observes .-> M
+    subgraph PUBLISH[Publication and consumption]
+        direction LR
+        C[CORE<br/>Historized facts]
+        M[MART<br/>CMA-year metrics]
+        A[Snowsight<br/>Analysis]
+        X[Quarantine<br/>Audit trail]
+        C --> M --> A
+    end
+
+    E --> P
+    Q -->|Pass| C
+    Q -->|Fail| X
+
+    subgraph GOVERNANCE[Operations and governance]
+        direction LR
+        O1[RBAC and audit]
+        O2[Terraform and CI]
+        O3[Cost controls]
+    end
 ```
 
 ## Authoritative data sources
@@ -42,19 +57,6 @@ flowchart LR
 | [17-10-0148-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710014801) | Population estimates, July 1, by CMA and CA, 2021 boundaries | CMA × year × demographic measure |
 
 The acquisition service resolves official full-table CSV downloads through the [Statistics Canada Web Data Service](https://www.statcan.gc.ca/en/developers/wds). It does not scrape web pages.
-
-## MVP acceptance criteria
-
-- Both official tables are acquired automatically and stored in immutable, content-addressed ADLS batches with a manifest and SHA-256 checksum.
-- Replaying an identical source file does not duplicate a landed batch or analytical rows.
-- A newly landed file triggers Snowpipe ingestion and an ordered Snowflake transformation.
-- RAW preserves source values and load metadata; CORE keeps conformed history and exposes current records.
-- Invalid batches are quarantined before publication to the analytical mart.
-- The CMA mart supports population, annual population growth, labour force, employment, unemployment, participation rate, employment rate, and unemployment rate by CMA and year.
-- Pipeline runs, batch outcomes, record counts, quality checks, and reconciliation results are queryable.
-- Azure and Snowflake DEV infrastructure is reproducible from Terraform; CI runs linting, tests, SQL checks, and Terraform validation.
-- Warehouses are X-Small with 60-second auto-suspend and a Snowflake resource monitor.
-- A documented teardown removes billable cloud resources while retaining code and deployment evidence.
 
 ## Verified live MVP results
 
@@ -69,12 +71,6 @@ The DEV pipeline was exercised end to end on Azure and Snowflake on August 13, 2
 The analytical mart contains 615 rows: a complete panel of 41 CMAs across 15 annual periods from 2011 through 2025. An immediate replay of both immutable source archives returned `SKIPPED`, demonstrating content-addressed idempotency before Snowflake loading.
 
 See [docs/evidence.md](docs/evidence.md) for the acceptance evidence and interpretation of source, conformed, and mart record counts.
-
-## MVP boundaries
-
-Included: DEV only, CMA-level analysis, Azure + Snowflake, Python, SQL, Terraform, GitHub Actions, event-driven loading, RBAC, auditability, and cost controls.
-
-Deferred: Airflow, Unity Catalog, Databricks, T-SQL migration, Power BI, Bank of Canada data, DA/CSD geography expansion, and a separate PROD environment.
 
 ## Local validation
 
