@@ -1,0 +1,14 @@
+subscription_id = "00000000-0000-0000-0000-000000000000"
+location        = "East US"
+environment     = "dev"
+
+# Phase 1: leave disabled while Terraform creates ACR and the remaining foundation.
+enable_container_job = false
+
+# Phase 2: set these after pushing the image to the ACR output.
+# enable_container_job = true
+# container_image      = "<acr-name>.azurecr.io/regional-intelligence-acquisition:<git-sha>"
+
+# Set after completing the two Snowflake Azure consent flows.
+# snowflake_storage_principal_object_id      = "00000000-0000-0000-0000-000000000000"
+# snowflake_notification_principal_object_id = "00000000-0000-0000-0000-000000000000"

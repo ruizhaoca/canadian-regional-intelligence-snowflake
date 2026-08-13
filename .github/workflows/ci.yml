@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Type check
+        run: mypy
+      - name: Test
+        run: pytest --cov=regional_intelligence --cov-report=term-missing
+
+  sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install SQLFluff
+        run: pip install "sqlfluff>=3.4,<4"
+      - name: Lint Snowflake SQL
+        run: sqlfluff lint --ignore-local-config --config .sqlfluff sql
+
+  terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        stack: [azure, snowflake]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra/${{ matrix.stack }}
+      - name: Initialize without remote state
+        working-directory: infra/${{ matrix.stack }}
+        run: terraform init -backend=false
+      - name: Validate
+        working-directory: infra/${{ matrix.stack }}
+        run: terraform validate
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build acquisition image
+        run: docker build --tag regional-intelligence-acquisition:ci .
+      - name: Smoke test image entry point
+        run: docker run --rm regional-intelligence-acquisition:ci --help

@@ -1,0 +1,12 @@
+[sqlfluff]
+dialect = snowflake
+templater = raw
+max_line_length = 100
+large_file_skip_byte_limit = 0
+rules = CP01, CP02, CP03, LT12
+
+[sqlfluff:indentation]
+tab_space_size = 4
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper

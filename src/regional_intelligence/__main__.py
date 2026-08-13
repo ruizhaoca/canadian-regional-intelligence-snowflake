@@ -1,0 +1,4 @@
+from regional_intelligence.cli import main
+
+raise SystemExit(main())
+
