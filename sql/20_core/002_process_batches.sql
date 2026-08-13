@@ -266,19 +266,48 @@ BEGIN
         FROM RAW.SOURCE_ROW
         WHERE BATCH_ID = :V_BATCH_ID;
 
-        INSERT INTO OPS.QUALITY_RESULT
-        VALUES
-            (
-                :V_RUN_ID, :V_BATCH_ID, 'SOURCE_RECORD_COUNT', 'ERROR',
-                :V_ACTUAL = :V_EXPECTED, TO_VARCHAR(:V_ACTUAL),
-                TO_VARCHAR(:V_EXPECTED), CURRENT_TIMESTAMP()
-            ),
-            (
-                :V_RUN_ID, :V_BATCH_ID, 'SOURCE_FILE_UNIQUENESS', 'ERROR',
-                :V_DISTINCT_SOURCE_ROWS = :V_ACTUAL,
-                TO_VARCHAR(:V_DISTINCT_SOURCE_ROWS), TO_VARCHAR(:V_ACTUAL),
-                CURRENT_TIMESTAMP()
-            );
+        -- Keep the procedural bind expressions in separate statements. This
+        -- avoids an internal Snowflake execution error observed for multi-row
+        -- VALUES inside a Snowflake Scripting procedure.
+        INSERT INTO OPS.QUALITY_RESULT (
+            RUN_ID,
+            BATCH_ID,
+            CHECK_NAME,
+            SEVERITY,
+            PASSED,
+            ACTUAL_VALUE,
+            EXPECTED_VALUE,
+            CHECKED_AT
+        ) VALUES (
+            :V_RUN_ID,
+            :V_BATCH_ID,
+            'SOURCE_RECORD_COUNT',
+            'ERROR',
+            :V_ACTUAL = :V_EXPECTED,
+            TO_VARCHAR(:V_ACTUAL),
+            TO_VARCHAR(:V_EXPECTED),
+            CURRENT_TIMESTAMP()
+        );
+
+        INSERT INTO OPS.QUALITY_RESULT (
+            RUN_ID,
+            BATCH_ID,
+            CHECK_NAME,
+            SEVERITY,
+            PASSED,
+            ACTUAL_VALUE,
+            EXPECTED_VALUE,
+            CHECKED_AT
+        ) VALUES (
+            :V_RUN_ID,
+            :V_BATCH_ID,
+            'SOURCE_FILE_UNIQUENESS',
+            'ERROR',
+            :V_DISTINCT_SOURCE_ROWS = :V_ACTUAL,
+            TO_VARCHAR(:V_DISTINCT_SOURCE_ROWS),
+            TO_VARCHAR(:V_ACTUAL),
+            CURRENT_TIMESTAMP()
+        );
 
         IF (V_ACTUAL != V_EXPECTED) THEN
             UPDATE OPS.LOAD_BATCH
