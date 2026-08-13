@@ -42,8 +42,40 @@ BEGIN
     BEGIN TRANSACTION;
 
     -- Reading the stream inside the transaction advances its offset only on COMMIT.
-    INSERT INTO TMP_BATCH_CONTROL
-    SELECT * FROM CORE.BATCH_CONTROL_STREAM;
+    -- A stream exposes three additional change-tracking metadata columns.
+    -- Project only the 14 base-table columns into the table-shaped buffer.
+    INSERT INTO TMP_BATCH_CONTROL (
+        TABLE_ID,
+        BATCH_ID,
+        SUBJECT,
+        SOURCE_URL,
+        SOURCE_LAST_MODIFIED_UTC,
+        INGESTED_AT_UTC,
+        SOURCE_ARCHIVE_SHA256,
+        DATA_CSV_SHA256,
+        SOURCE_RECORD_COUNT,
+        DATA_PATH,
+        MANIFEST_PATH,
+        SOURCE_FILE,
+        SOURCE_ROW_NUMBER,
+        SOURCE_LOADED_AT
+    )
+    SELECT
+        TABLE_ID,
+        BATCH_ID,
+        SUBJECT,
+        SOURCE_URL,
+        SOURCE_LAST_MODIFIED_UTC,
+        INGESTED_AT_UTC,
+        SOURCE_ARCHIVE_SHA256,
+        DATA_CSV_SHA256,
+        SOURCE_RECORD_COUNT,
+        DATA_PATH,
+        MANIFEST_PATH,
+        SOURCE_FILE,
+        SOURCE_ROW_NUMBER,
+        SOURCE_LOADED_AT
+    FROM CORE.BATCH_CONTROL_STREAM;
 
     -- Also recover any non-terminal control row if an operator calls the procedure.
     INSERT INTO TMP_BATCH_CONTROL
