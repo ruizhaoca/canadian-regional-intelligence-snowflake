@@ -8,11 +8,7 @@ from typing import BinaryIO, Protocol
 
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
-from azure.storage.filedatalake import (
-    DataLakeFileClient,
-    DataLakeServiceClient,
-    FileSystemClient,
-)
+from azure.storage.blob import BlobClient, BlobServiceClient, ContainerClient
 
 
 class ObjectIntegrityError(RuntimeError):
@@ -100,21 +96,22 @@ class AzureDataLakeLandingStore:
 
     def __init__(self, account_url: str, file_system: str) -> None:
         credential = DefaultAzureCredential(exclude_interactive_browser_credential=True)
-        service = DataLakeServiceClient(account_url=account_url, credential=credential)
-        self._file_system: FileSystemClient = service.get_file_system_client(file_system)
+        blob_account_url = account_url.replace(".dfs.", ".blob.")
+        service = BlobServiceClient(account_url=blob_account_url, credential=credential)
+        self._container: ContainerClient = service.get_container_client(file_system)
 
-    def _client(self, path: str) -> DataLakeFileClient:
-        return self._file_system.get_file_client(path)
+    def _client(self, path: str) -> BlobClient:
+        return self._container.get_blob_client(path)
 
     def exists(self, path: str) -> bool:
         try:
-            self._client(path).get_file_properties()
+            self._client(path).get_blob_properties()
             return True
         except ResourceNotFoundError:
             return False
 
     def read_bytes(self, path: str) -> bytes:
-        return bytes(self._client(path).download_file().readall())
+        return bytes(self._client(path).download_blob().readall())
 
     def put_file(self, path: str, source: Path, sha256: str) -> bool:
         with source.open("rb") as content:
@@ -132,12 +129,12 @@ class AzureDataLakeLandingStore:
     ) -> bool:
         client = self._client(path)
         try:
-            client.upload_data(
+            client.upload_blob(
                 content,
                 overwrite=False,
                 length=size_bytes,
+                metadata={"sha256": sha256},
             )
-            client.set_metadata({"sha256": sha256})
             return True
         except ResourceExistsError:
             self._verify_existing(client, path, sha256, size_bytes)
@@ -145,25 +142,13 @@ class AzureDataLakeLandingStore:
 
     @staticmethod
     def _verify_existing(
-        client: DataLakeFileClient,
+        client: BlobClient,
         path: str,
         expected_sha256: str,
         expected_size: int,
     ) -> None:
-        properties = client.get_file_properties()
+        properties = client.get_blob_properties()
         existing_hash = (properties.metadata or {}).get("sha256")
-
-        # upload_data(overwrite=False) cannot atomically set metadata in the
-        # current Azure SDK. If a prior process uploaded the immutable bytes
-        # but stopped before set_metadata(), recover by hashing the remote
-        # stream and then restoring the metadata.
-        if properties.size == expected_size and existing_hash is None:
-            digest = hashlib.sha256()
-            for chunk in client.download_file().chunks():
-                digest.update(chunk)
-            existing_hash = digest.hexdigest()
-            if existing_hash == expected_sha256:
-                client.set_metadata({"sha256": expected_sha256})
 
         if properties.size != expected_size or existing_hash != expected_sha256:
             raise ObjectIntegrityError(
