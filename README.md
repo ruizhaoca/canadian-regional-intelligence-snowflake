@@ -18,26 +18,13 @@ The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent l
 
 [![Canadian Regional Intelligence end-to-end architecture](docs/assets/architecture.svg)](docs/assets/architecture.svg)
 
-The workflow moves two official Statistics Canada datasets through immutable Azure landing, event-driven Snowflake ingestion, governed ELT, and a CMA-year analytical mart. A [PNG version](docs/assets/architecture.png) is available for platforms that do not render SVG.
+For implementation details, design decisions, and processing guarantees, see [docs/architecture.md](docs/architecture.md).
 
 ### Snowflake dimensional model
 
-```text
-CORE.FACT_POPULATION_HISTORY --> CORE.VW_POPULATION_CURRENT --\
-                                                                \
-CORE.DIM_CMA (one row/CMA) -------------------------------------> MART.CMA_YEAR_LABOUR_MARKET
-                                                                /   (one row/CMA/year)
-CORE.FACT_LABOUR_HISTORY -----> CORE.VW_LABOUR_CURRENT --------/              |
-                                                                               v
-                                                           MART.CMA_REGIONAL_OUTLOOK
-                                                               (latest year/CMA)
-```
+[![Snowflake dimensional model](docs/assets/dimensional-model.svg)](docs/assets/dimensional-model.svg)
 
 The model separates historized source facts from current-state views, a conformed CMA dimension keyed by Statistics Canada DGUID, and business-facing marts. This preserves source-vintage history while giving analysts a stable CMA-year grain for cross-domain population and labour-market analysis.
-
-### Cost-aware operations
-
-Here, cost-aware operations means designing DEV resources to stop consuming compute when idle and to fail safely before unexpected usage grows. The scheduled Container Apps Job replaces an always-on acquisition service; the Snowflake warehouse is X-Small, initially suspended, and auto-suspends after 60 seconds. A five-credit monthly resource monitor notifies at 50% and 80%, suspends at 90%, and suspends immediately at 100%. Query timeouts and the documented teardown procedure provide additional safeguards.
 
 ## Authoritative data sources
 
@@ -98,65 +85,29 @@ The second identical run reports `SKIPPED` for both content-addressed batches.
 
 ```text
 .
-|-- .github/workflows/ci.yml    # Python, SQL, Terraform, and container CI checks
+|-- .github/workflows/ci.yml    # Automated code and infrastructure checks
 |-- analytics/
-|   |-- snapshots/2025/
-|   |   |-- cma_year_trends_2011_2025.csv  # Versioned CMA-year MART export
-|   |   |-- regional_outlook_2025.csv       # Latest-year benchmark export
-|   |   `-- README.md                         # Snapshot lineage and regeneration notes
-|   `-- tableau/
-|       |-- canadian_regional_intelligence.png   # Static dashboard evidence
-|       |-- canadian_regional_intelligence.twbx  # Packaged Tableau workbook
-|       `-- README.md                            # Tableau inputs and presentation scope
+|   |-- snapshots/2025/         # Versioned Snowflake MART exports and lineage notes
+|   `-- tableau/                # Tableau workbook and static dashboard evidence
 |-- docs/
-|   |-- assets/architecture.svg  # Source workflow diagram
-|   |-- assets/architecture.png  # Portable workflow diagram rendering
-|   |-- architecture.md          # Design decisions, ordering, security, and cost controls
-|   |-- deployment.md            # Ordered Azure/Snowflake deployment and teardown runbook
-|   `-- evidence.md              # Live MVP acceptance evidence and count reconciliation
+|   |-- assets/                 # Workflow and dimensional-model diagrams
+|   |-- architecture.md         # Design decisions, ordering, security, and cost controls
+|   |-- deployment.md           # Deployment and teardown runbook
+|   `-- evidence.md             # Live MVP evidence and count reconciliation
 |-- infra/
-|   |-- azure/
-|   |   |-- main.tf              # ADLS, Event Grid, queue, identity, ACR, and Container Apps Job
-|   |   |-- variables.tf         # Azure input contracts and defaults
-|   |   |-- outputs.tf           # Integration identifiers required by Snowflake
-|   |   |-- versions.tf          # Terraform/provider and remote-state configuration
-|   |   `-- terraform.tfvars.example  # Non-secret DEV configuration template
-|   `-- snowflake/
-|       |-- main.tf              # Warehouse, monitor, RBAC, schemas, integrations, and stage
-|       |-- variables.tf         # Snowflake and Azure integration inputs
-|       |-- outputs.tf           # Database, warehouse, stage, and integration names
-|       |-- versions.tf          # Snowflake provider and Azure backend configuration
-|       `-- terraform.tfvars.example  # Non-secret DEV configuration template
-|-- scripts/
-|   |-- bootstrap_azure_backend.ps1   # Creates remote Terraform state storage
-|   |-- run_snowflake_terraform.ps1   # Runs MFA-aware Snowflake plan/apply workflows
-|   |-- deploy_snowflake_sql.ps1      # Applies ordered Snowflake SQL migrations
-|   `-- profile_source.py             # Profiles source archives before modeling
+|   |-- azure/                  # Azure landing, events, identity, and acquisition IaC
+|   `-- snowflake/              # Snowflake compute, RBAC, integration, and schema IaC
+|-- scripts/                    # Backend bootstrap, deployment, and profiling helpers
 |-- sql/
-|   |-- 10_raw/001_ingestion.sql          # File formats, RAW tables, stage, and Snowpipe
-|   |-- 20_core/001_tables.sql            # Historized facts, batch audit, Stream, and quality tables
-|   |-- 20_core/002_process_batches.sql   # Idempotent set-based processing procedure
-|   |-- 20_core/003_task.sql              # Triggered Snowflake Task orchestration
-|   |-- 30_marts/001_cma_year_mart.sql    # CMA dimension and conformed CMA-year mart
-|   |-- 30_marts/002_regional_outlook.sql # Latest-year benchmarks and regional quadrants
-|   |-- 40_monitoring/001_monitoring_views.sql  # Batch, quality, and reconciliation views
-|   |-- 90_verification/001_acceptance.sql      # MVP acceptance queries
-|   |-- 90_verification/002_regional_insights.sql  # Reproducible insight queries
-|   `-- 90_verification/003_tableau_exports.sql    # Tableau snapshot export queries
-|-- src/regional_intelligence/
-|   |-- cli.py                  # Acquisition command-line entry point
-|   |-- config.py               # Validated runtime configuration
-|   |-- catalog.py              # Statistics Canada dataset catalog
-|   |-- statscan.py             # WDS discovery and resilient download client
-|   |-- archive.py              # ZIP inspection, extraction, and hashing
-|   |-- models.py               # Batch manifest and dataset contracts
-|   |-- storage.py              # Immutable local and ADLS landing adapters
-|   `-- pipeline.py             # End-to-end acquisition orchestration
-|-- tests/unit/                 # Unit tests for acquisition, hashing, storage, and idempotency
-|-- .env.example               # Local configuration template without credentials
-|-- .sqlfluff                  # Snowflake SQL lint configuration
+|   |-- 10_raw/                 # External-stage ingestion and RAW structures
+|   |-- 20_core/                # History, quality gate, Streams, Tasks, and procedures
+|   |-- 30_marts/               # Conformed CMA-year and regional-outlook models
+|   |-- 40_monitoring/          # Operational health and reconciliation views
+|   `-- 90_verification/        # Acceptance, insight, and Tableau export queries
+|-- src/regional_intelligence/  # Python acquisition and immutable landing package
+|-- tests/unit/                 # Acquisition, storage, hashing, and idempotency tests
 |-- Dockerfile                 # Non-root acquisition container image
-`-- pyproject.toml             # Package metadata, dependencies, and test/lint/type settings
+`-- pyproject.toml             # Package, dependency, and quality-tool configuration
 ```
 
 ## Deployment
