@@ -6,6 +6,24 @@ A portfolio-grade data engineering platform that combines Canadian metropolitan-
 
 The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent landing, Snowflake ELT, data quality controls, dimensional modeling, infrastructure as code, CI, RBAC, and cost-aware operations.
 
+## Regional intelligence dashboard
+
+[![Canadian regional population and labour-market dashboard](analytics/tableau/canadian_regional_intelligence.png)](analytics/tableau/canadian_regional_intelligence.png)
+
+[Open the full-resolution dashboard](analytics/tableau/canadian_regional_intelligence.png) | [Download the packaged Tableau workbook](analytics/tableau/canadian_regional_intelligence.twbx)
+
+The Tableau presentation layer consumes versioned snapshots exported from the published Snowflake MART; transformation and benchmarking logic remains in version-controlled SQL. The dashboard makes the engineering output decision-ready by comparing CMA population growth with current labour-market pressure and longer-term employment-rate change.
+
+### Main insights
+
+- The 2025 analytical snapshot covers **41 CMAs and 31.2 million residents**. Median population growth since 2019 was **12.37%**, while median unemployment was **6.7%**.
+- **Moncton led population growth at 26.48%** and remained below the CMA median unemployment rate at 6.1%. Calgary grew 22.13%, but its 7.4% unemployment rate was above the median.
+- Among Canada's six largest CMAs, **Calgary grew fastest at 22.13%**, while Montréal grew slowest at 6.24%; all six remained above their 2019 population baselines.
+- Population growth did not consistently translate into stronger employment rates: **Kelowna grew 15.46% but recorded the largest employment-rate decline at 6.5 percentage points**.
+- Across all CMAs, population growth and unemployment had a **modest positive correlation of 0.326**. This is descriptive, not causal, and highlights why both demographic demand and labour-market capacity should be assessed together.
+
+The four regional quadrants use the snapshot medians as relative benchmarks; they are not causal or normative classifications. The supporting [Snowflake insight queries](sql/90_verification/002_regional_insights.sql), [Tableau export queries](sql/90_verification/003_tableau_exports.sql), and [versioned analytical snapshots](analytics/snapshots/2025) make every displayed result reproducible.
+
 ## MVP workflow
 
 [![Canadian Regional Intelligence end-to-end architecture](docs/assets/architecture.svg)](docs/assets/architecture.svg)
@@ -60,6 +78,9 @@ The second identical run reports `SKIPPED` for both content-addressed batches.
 ```text
 .
 |-- .github/workflows/          # CI checks
+|-- analytics/
+|   |-- snapshots/2025/         # Versioned Snowflake MART exports
+|   `-- tableau/                # Packaged workbook and static dashboard
 |-- docs/                       # Architecture and operational guidance
 |-- infra/
 |   |-- azure/                  # Azure DEV Terraform

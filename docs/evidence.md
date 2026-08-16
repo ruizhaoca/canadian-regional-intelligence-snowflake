@@ -53,6 +53,27 @@ The latest-year query returned complete 2025 population and labour-market metric
 
 Accented names such as `Montréal` and `Québec` remained valid UTF-8 throughout acquisition, Snowflake transformation, and CSV export.
 
+## Analytical presentation evidence
+
+The published MART was extended with a latest-year regional-outlook view that
+benchmarks each CMA against the cross-CMA medians for population growth since
+2019 and 2025 unemployment. Version-controlled export queries produce the two
+Tableau inputs retained under [`analytics/snapshots/2025`](../analytics/snapshots/2025).
+
+The verified 2025 presentation snapshot covers 41 CMAs and 31,169,100 residents,
+with median population growth of 12.37% and median unemployment of 6.7%.
+Moncton led population growth at 26.48%, while Kelowna combined 15.46% growth
+with the largest employment-rate decline, at 6.5 percentage points. The
+cross-CMA correlation between population growth and unemployment was 0.326;
+this is a descriptive relationship rather than a causal estimate.
+
+The packaged Tableau workbook and its high-resolution static dashboard are
+retained in [`analytics/tableau`](../analytics/tableau), so the analytical
+outcome remains reviewable after the Azure and Snowflake DEV resources are
+removed. The underlying logic is reproducible from
+[`002_regional_insights.sql`](../sql/90_verification/002_regional_insights.sql)
+and [`003_tableau_exports.sql`](../sql/90_verification/003_tableau_exports.sql).
+
 ## Operational evidence retained in Snowflake
 
 - `OPS.VW_BATCH_HEALTH`: source, actual, valid, status, reason, and processing metadata by batch

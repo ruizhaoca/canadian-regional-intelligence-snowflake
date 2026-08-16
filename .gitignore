@@ -21,3 +21,4 @@ crash.log
 *.auto.tfvars
 data/
 artifacts/
+~*.twbr

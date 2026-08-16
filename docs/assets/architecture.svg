@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1080" viewBox="0 0 1800 1080" role="img" aria-labelledby="title desc">
   <title id="title">Canadian Regional Intelligence end-to-end architecture</title>
-  <desc id="desc">Statistics Canada data is acquired by an Azure Container Apps Job, landed immutably in ADLS Gen2, delivered through Event Grid and a storage queue to Snowpipe, processed in Snowflake through RAW, Streams, Tasks, a SQL stored procedure, quality gates, historized CORE tables, a CMA-year mart, and Snowsight. Terraform, GitHub Actions, RBAC, audit, and cost controls govern all layers.</desc>
+  <desc id="desc">Statistics Canada data is acquired by an Azure Container Apps Job, landed immutably in ADLS Gen2, delivered through Event Grid and a storage queue to Snowpipe, processed in Snowflake through RAW, Streams, Tasks, a SQL stored procedure, quality gates, historized CORE tables, analytical mart views, and a Tableau dashboard. Terraform, GitHub Actions, RBAC, audit, and cost controls govern all layers.</desc>
 
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
@@ -117,12 +117,12 @@
   <text x="290" y="874" class="node-detail">Current + historical records</text>
 
   <rect x="600" y="818" width="340" height="74" rx="12" fill="#FFFFFF" stroke="#4C9A6A" stroke-width="2" filter="url(#shadow)"/>
-  <text x="770" y="847" class="node-title">CMA-Year MART</text>
-  <text x="770" y="874" class="node-detail">Population + labour metrics</text>
+  <text x="770" y="847" class="node-title">Analytical MART Views</text>
+  <text x="770" y="874" class="node-detail">CMA-year + regional outlook</text>
 
   <rect x="1080" y="818" width="300" height="74" rx="12" fill="#FFFFFF" stroke="#4C9A6A" stroke-width="2" filter="url(#shadow)"/>
-  <text x="1230" y="847" class="node-title">Snowsight Analysis</text>
-  <text x="1230" y="874" class="node-detail">Regional trends and monitoring</text>
+  <text x="1230" y="847" class="node-title">Tableau Dashboard</text>
+  <text x="1230" y="874" class="node-detail">Interactive + static evidence</text>
 
   <rect x="1460" y="818" width="240" height="74" rx="12" fill="#FFF0EA" stroke="#C65D36" stroke-width="2" filter="url(#shadow)"/>
   <text x="1580" y="847" class="node-title">Quarantine</text>

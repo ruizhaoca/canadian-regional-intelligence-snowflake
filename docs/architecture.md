@@ -14,7 +14,7 @@ The platform separates acquisition, immutable landing, warehouse ingestion, conf
 6. The procedure validates schema, source release ordering, uniqueness, record counts, and required values before consuming the batch.
 7. Passing batches are merged into historized CORE tables and current views. Failed batches remain auditable and are excluded from publication.
 8. A CMA-year mart joins conformed population and labour facts on the stable Statistics Canada CMA DGUID rather than names.
-9. Snowsight queries demonstrate regional trends and the relationship between demographic growth and labour-market indicators.
+9. Snowflake analytical views produce versioned presentation extracts, and the packaged Tableau dashboard communicates regional growth, labour-market pressure, and employment-rate trends. Static evidence remains available after DEV cloud teardown.
 
 ## Idempotency and ordering
 
