@@ -17,7 +17,6 @@
     </filter>
     <style>
       .title { font: 700 34px Arial, Helvetica, sans-serif; fill: #172B4D; }
-      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #5B6878; }
       .layer-title { font: 700 21px Arial, Helvetica, sans-serif; fill: #172B4D; }
       .node-title { font: 700 20px Arial, Helvetica, sans-serif; fill: #172B4D; text-anchor: middle; }
       .node-detail { font: 400 16px Arial, Helvetica, sans-serif; fill: #455568; text-anchor: middle; }
@@ -34,7 +33,6 @@
   <rect width="1800" height="1080" fill="#FFFFFF"/>
 
   <text x="60" y="54" class="title">Canadian Regional Intelligence — End-to-End Data Workflow</text>
-  <text x="60" y="84" class="subtitle">Event-driven Azure landing, governed Snowflake ELT, and CMA-level analytical outputs</text>
 
   <!-- Data sources -->
   <rect x="50" y="110" width="1700" height="135" rx="18" fill="#F6F8FA" stroke="#B8C2CC" stroke-width="2"/>
@@ -72,10 +70,10 @@
   <text x="1530" y="369" class="node-title">Storage Queue</text>
   <text x="1530" y="396" class="node-detail">Snowpipe notifications</text>
 
-  <path d="M 480 377 H 530" class="edge"/>
-  <path d="M 950 377 H 1000" class="edge"/>
-  <path d="M 1310 377 H 1360" class="edge"/>
-  <path d="M 1102 231 V 258 H 285 V 322" class="edge"/>
+  <path d="M 480 377 H 545" class="edge"/>
+  <path d="M 950 377 H 1015" class="edge"/>
+  <path d="M 1310 377 H 1375" class="edge"/>
+  <path d="M 1102 231 V 258 H 30 V 377 H 75" class="edge"/>
 
   <!-- Snowflake -->
   <rect x="50" y="480" width="1700" height="235" rx="18" fill="#F1EFFF" stroke="#7669D4" stroke-width="2"/>
@@ -102,11 +100,11 @@
   <text x="1510" y="615" class="gate-title">Reconciliation</text>
   <text x="1510" y="641" class="node-detail">Publish or quarantine</text>
 
-  <path d="M 305 607 H 335" class="edge"/>
-  <path d="M 585 607 H 615" class="edge"/>
-  <path d="M 945 607 H 975" class="edge"/>
-  <path d="M 1305 607 H 1350" class="edge"/>
-  <path d="M 1530 416 V 462 H 195 V 550" class="edge"/>
+  <path d="M 305 607 H 350" class="edge"/>
+  <path d="M 585 607 H 630" class="edge"/>
+  <path d="M 945 607 H 990" class="edge"/>
+  <path d="M 1305 607 H 1365" class="edge"/>
+  <path d="M 1530 416 V 462 H 30 V 607 H 70" class="edge"/>
 
   <!-- Publication -->
   <rect x="50" y="745" width="1700" height="175" rx="18" fill="#EAF8F0" stroke="#4C9A6A" stroke-width="2"/>
@@ -128,9 +126,9 @@
   <text x="1580" y="847" class="node-title">Quarantine</text>
   <text x="1580" y="874" class="node-detail">OPS audit trail</text>
 
-  <path d="M 460 855 H 570" class="edge-pass"/>
-  <path d="M 940 855 H 1050" class="edge-pass"/>
-  <path d="M 1468 664 V 742 H 290 V 802" class="edge-pass"/>
+  <path d="M 460 855 H 585" class="edge-pass"/>
+  <path d="M 940 855 H 1065" class="edge-pass"/>
+  <path d="M 1468 664 V 730 H 30 V 855 H 105" class="edge-pass"/>
   <text x="1398" y="699" class="edge-label" fill="#207A4A">PASS</text>
   <path d="M 1552 665 V 802" class="edge-fail"/>
   <text x="1570" y="731" class="edge-label" fill="#B4532A">FAIL</text>
