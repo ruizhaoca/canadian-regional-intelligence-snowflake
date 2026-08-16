@@ -21,8 +21,6 @@ The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent l
 
 For implementation details, design decisions, and processing guarantees, see [docs/architecture.md](docs/architecture.md).
 
-### Snowflake dimensional model
-
 [![Snowflake dimensional model](docs/assets/dimensional-model.svg)](docs/assets/dimensional-model.svg)
 
 The model separates historized source facts from latest-vintage views, a conformed CMA dimension keyed by Statistics Canada DGUID, and business-facing marts. This preserves source-vintage history while giving analysts a stable CMA-year grain for cross-domain population and labour-market analysis.
