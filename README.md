@@ -24,7 +24,7 @@ For implementation details, design decisions, and processing guarantees, see [do
 
 [![Snowflake dimensional model](docs/assets/dimensional-model.svg)](docs/assets/dimensional-model.svg)
 
-The model separates historized source facts from current-state views, a conformed CMA dimension keyed by Statistics Canada DGUID, and business-facing marts. This preserves source-vintage history while giving analysts a stable CMA-year grain for cross-domain population and labour-market analysis.
+The model separates historized source facts from latest-vintage views, a conformed CMA dimension keyed by Statistics Canada DGUID, and business-facing marts. This preserves source-vintage history while giving analysts a stable CMA-year grain for cross-domain population and labour-market analysis.
 
 ## Authoritative data sources
 
