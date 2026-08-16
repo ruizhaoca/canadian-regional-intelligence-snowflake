@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="650" viewBox="0 0 1800 650" role="img" aria-labelledby="title desc">
   <title id="title">Snowflake dimensional model</title>
-  <desc id="desc">Historized population and labour facts feed latest-vintage views, a conformed CMA dimension, a CMA-year analytical mart, and a latest-year regional outlook.</desc>
+  <desc id="desc">Historized population and labour facts feed latest-vintage views, a conformed CMA dimension, a CMA-year analytical mart, and a latest-year regional outlook. Solid lines show measure or table-derivation flow; dashed lines show descriptor sources for the conformed dimension.</desc>
   <defs>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
       <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#20324d" flood-opacity="0.14"/>
@@ -23,6 +23,7 @@
       .box-title { font: 700 18px Arial, sans-serif; fill: #183153; }
       .box-meta { font: 15px Arial, sans-serif; fill: #53657d; }
       .grain { font: 700 14px Arial, sans-serif; fill: #36506f; }
+      .legend-text { font: 14px Arial, sans-serif; fill: #53657d; }
       .connector-pop { fill: none; stroke: #578fd2; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-blue); }
       .connector-labour { fill: none; stroke: #3b9fa3; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-teal); }
       .connector-dim { fill: none; stroke: #8068c6; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-purple); }
@@ -40,6 +41,11 @@
   <rect width="1800" height="650" fill="#ffffff"/>
   <text x="50" y="58" class="title">Snowflake Dimensional Model</text>
 
+  <line x1="1190" y1="48" x2="1250" y2="48" stroke="#578fd2" stroke-width="2.6" stroke-linecap="round"/>
+  <text x="1262" y="53" class="legend-text">Measure / derivation flow</text>
+  <line x1="1475" y1="48" x2="1535" y2="48" stroke="#8068c6" stroke-width="2" stroke-dasharray="7 7" stroke-linecap="round"/>
+  <text x="1547" y="53" class="legend-text">Descriptor source</text>
+
   <rect x="45" y="92" width="360" height="500" rx="18" class="lane"/>
   <rect x="430" y="92" width="360" height="500" rx="18" class="lane"/>
   <rect x="815" y="92" width="310" height="500" rx="18" class="lane"/>
@@ -53,39 +59,39 @@
   <rect x="75" y="170" width="300" height="145" rx="14" class="history" filter="url(#shadow)"/>
   <text x="225" y="213" text-anchor="middle" class="box-title">FACT_POPULATION_HISTORY</text>
   <text x="225" y="247" text-anchor="middle" class="box-meta">Population measures</text>
-  <text x="225" y="276" text-anchor="middle" class="grain">Grain: CMA · year · vintage</text>
+  <text x="225" y="276" text-anchor="middle" class="grain">Grain: CMA &#215; year &#215; vintage</text>
 
   <rect x="75" y="365" width="300" height="145" rx="14" class="history" filter="url(#shadow)"/>
   <text x="225" y="408" text-anchor="middle" class="box-title">FACT_LABOUR_HISTORY</text>
   <text x="225" y="442" text-anchor="middle" class="box-meta">Labour-market measures</text>
-  <text x="225" y="471" text-anchor="middle" class="grain">Grain: CMA · year · metric · vintage</text>
+  <text x="225" y="471" text-anchor="middle" class="grain">Grain: CMA &#215; year &#215; metric &#215; vintage</text>
 
   <rect x="460" y="170" width="300" height="145" rx="14" class="current" filter="url(#shadow)"/>
   <text x="610" y="213" text-anchor="middle" class="box-title">VW_POPULATION_CURRENT</text>
   <text x="610" y="247" text-anchor="middle" class="box-meta">Latest population vintage</text>
-  <text x="610" y="276" text-anchor="middle" class="grain">Grain: CMA · year</text>
+  <text x="610" y="276" text-anchor="middle" class="grain">Grain: CMA &#215; year</text>
 
   <rect x="460" y="365" width="300" height="145" rx="14" class="current" filter="url(#shadow)"/>
   <text x="610" y="408" text-anchor="middle" class="box-title">VW_LABOUR_CURRENT</text>
   <text x="610" y="442" text-anchor="middle" class="box-meta">Latest labour-data vintage</text>
-  <text x="610" y="471" text-anchor="middle" class="grain">Grain: CMA · year · metric</text>
+  <text x="610" y="471" text-anchor="middle" class="grain">Grain: CMA &#215; year &#215; metric</text>
 
   <rect x="845" y="257" width="250" height="165" rx="14" class="dimension" filter="url(#shadow)"/>
   <text x="970" y="299" text-anchor="middle" class="box-title">DIM_CMA</text>
   <text x="970" y="330" text-anchor="middle" class="box-meta">Canonical CMA descriptors</text>
-  <text x="970" y="361" text-anchor="middle" class="grain">Grain: one row per CMA</text>
+  <text x="970" y="361" text-anchor="middle" class="grain">Grain: CMA</text>
   <text x="970" y="390" text-anchor="middle" class="box-meta">Key: CMA_DGUID</text>
 
   <rect x="1180" y="180" width="350" height="165" rx="14" class="mart" filter="url(#shadow)"/>
   <text x="1355" y="226" text-anchor="middle" class="box-title">CMA_YEAR_LABOUR_MARKET</text>
   <text x="1355" y="262" text-anchor="middle" class="box-meta">Population + labour-market measures</text>
-  <text x="1355" y="293" text-anchor="middle" class="grain">Grain: one row per CMA and year</text>
+  <text x="1355" y="293" text-anchor="middle" class="grain">Grain: CMA &#215; year</text>
   <text x="1355" y="319" text-anchor="middle" class="box-meta">Key: CMA_DGUID + REF_YEAR</text>
 
   <rect x="1370" y="405" width="350" height="135" rx="14" class="outlook" filter="url(#shadow)"/>
   <text x="1545" y="448" text-anchor="middle" class="box-title">CMA_REGIONAL_OUTLOOK</text>
   <text x="1545" y="482" text-anchor="middle" class="box-meta">Latest-year trends and benchmarks</text>
-  <text x="1545" y="511" text-anchor="middle" class="grain">Grain: one row per CMA</text>
+  <text x="1545" y="511" text-anchor="middle" class="grain">Grain: CMA</text>
 
   <path d="M 375 242 H 460" class="connector-pop"/>
   <path d="M 375 437 H 460" class="connector-labour"/>
