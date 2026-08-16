@@ -8,9 +8,13 @@ The MVP demonstrates event-driven ingestion on Azure, immutable and idempotent l
 
 ## Regional intelligence dashboard
 
-[![Canadian regional population and labour-market dashboard](analytics/tableau/canadian_regional_intelligence.png)](analytics/tableau/canadian_regional_intelligence.png)
+**[▶ Live interactive dashboard](https://public.tableau.com/app/profile/ruizhaoca/viz/canadian_regional_intelligence/CanadianRegionalIntelligence)**
 
-[Open the full-resolution dashboard](analytics/tableau/canadian_regional_intelligence.png) | [Download the packaged Tableau workbook](analytics/tableau/canadian_regional_intelligence.twbx)
+[![Canadian regional population and labour-market dashboard](analytics/tableau/canadian_regional_intelligence.png)](https://public.tableau.com/app/profile/ruizhaoca/viz/canadian_regional_intelligence/CanadianRegionalIntelligence)
+
+*Tableau dashboard connecting CMA population growth, current unemployment pressure, and employment-rate change across 41 Canadian metropolitan areas.*
+
+[Open the full-resolution image](analytics/tableau/canadian_regional_intelligence.png) | [Download the packaged Tableau workbook](analytics/tableau/canadian_regional_intelligence.twbx)
 
 The Tableau presentation layer consumes versioned snapshots exported from the published Snowflake MART; transformation and benchmarking logic remains in version-controlled SQL. The dashboard makes the engineering output decision-ready by comparing CMA population growth with current labour-market pressure and longer-term employment-rate change.
 

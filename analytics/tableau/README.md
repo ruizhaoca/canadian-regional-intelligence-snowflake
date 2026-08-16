@@ -16,6 +16,7 @@ The dashboard presents four KPIs and four analytical views: CMA growth versus
 labour-market pressure, the fastest-growing CMAs, indexed population growth for
 the six largest CMAs, and the largest employment-rate declines since 2019.
 
-The root README links to the static dashboard and packaged workbook. After the
-workbook is published to Tableau Public, the same dashboard image can link
-directly to its interactive public URL.
+The root README links to the
+[interactive Tableau Public view](https://public.tableau.com/app/profile/ruizhaoca/viz/canadian_regional_intelligence/CanadianRegionalIntelligence)
+through both a call-to-action and the dashboard image. It also retains direct
+access to the static image and packaged workbook for long-term portfolio evidence.
